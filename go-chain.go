@@ -1,3 +1,11 @@
+/* Disclaimer, first attempt at writing in Go,
+ * still trying to understand some of the kinks
+ * while learning proper Go syntaxing. 
+ * 
+ * Hello world
+ *
+ */
+
 package main
 
 import (
@@ -13,7 +21,6 @@ type transaction struct {
 }
 
 type block struct {
-
 	index		uint
 	timestamp	uint32
 	transactions	transaction
@@ -24,8 +31,18 @@ type block struct {
 func main() {
 	
 	// testing creation of transaction and block
-	trans := transaction{sender: "abc", reciever: "xyz", amount: 5.0}
-	blk := block{index: 1, timestamp: 232, transactions: trans, previous_hash: "hi"}
+	trans := transaction {
+			sender: "abc", 
+			reciever: "xyz", 
+			amount: 5.0
+	}
+	
+	blk := block {
+			index: 1, 
+			timestamp: 232, 
+			transactions: trans, 
+			previous_hash: "hi"
+	}
 	
 	fmt.Println(blk)
 	fmt.Println(trans)
