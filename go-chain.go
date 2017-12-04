@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"bytes"
-	"crypto/sha256"
 	"time"
+	"crypto/sha256"
+	"encoding/hex"
 )
 
-// will be used in the future 
-// keep it simple for now 
+// sample of how a transaction would look
+// this would replace the 'data' in block
 type transaction struct {
 	sender		string
 	reciever	string
@@ -16,12 +16,12 @@ type transaction struct {
 }
 
 type block struct {
-	index			uint
-	timestamp		uint32
-	data			string
-	previous_hash	[]byte
-	hash 			[]byte
-	nonce			uint64
+	index			uint		// depth of current block
+	timestamp		uint32		// timestamp in unix
+	data			string		// can be anything - would be transaction
+	previous_hash	string		// keep track of the last block 
+	hash 			string		// hash of current block parameters, used sha256
+	nonce			uint64		// used for proof of work
 }
 
 type blockchain struct {
@@ -42,21 +42,6 @@ func (chain *blockchain) add_block(data string) {
 	chain.blocks = append(chain.blocks, new_block)
 }
 
-func (bl *block) get_hash() []byte {
-
-	// Combine the headers 'data', 'previous_hash', and 'timestamp' and hash it	
-	var buffer bytes.Buffer
-	buffer.WriteString(bl.data)
-	buffer.WriteString(string(bl.previous_hash))
-	buffer.WriteString(fmt.Sprint(bl.timestamp))
-	buffer.WriteString(string(bl.nonce))
-	
-	// create hash and set it to the current block
-	h := sha256.New()
-	h.Write(buffer.Bytes())
-	return h.Sum(nil)
-}
-
 func create_block(data string, previous_block block) block {
 	
 	new_block := block {
@@ -73,17 +58,37 @@ func create_block(data string, previous_block block) block {
 	// Should be a race by other nodes to find this node first
 	// Exponential growth - makes it very hard to calculate depending
 	// on the number of 0s (aka the difficulty level)
-	for (string(new_block.hash[0:3]) != "000") {
+	for (new_block.hash[0:2] != "00") {
 		new_block.nonce += 1
 		new_block.hash = new_block.get_hash()
-		fmt.Println(new_block.nonce);
 	}
 	return new_block
+}
+
+func (bl *block) get_hash() string {
+	
+	// Combine the headers 'data', 'previous_hash', and 'timestamp' and hash it	
+	s := bl.data + bl.previous_hash + fmt.Sprint(bl.timestamp) + string(bl.nonce)
+
+	h := sha256.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func main() {
 	bc := blockchain{}
 	bc.add_block("Hello")
-	//bc.add_block("World")
-	fmt.Println(bc.blocks);
+	bc.add_block("World")
+	
+	fmt.Println("------");
+	i := 0
+	for (i < len(bc.blocks)) { 
+		fmt.Println("Index: ", bc.blocks[i].index);
+		fmt.Println("Timestamp: ", bc.blocks[i].timestamp);
+		fmt.Println("Previous Hash: ", bc.blocks[i].previous_hash);
+		fmt.Println("Hash: ", bc.blocks[i].hash);
+		fmt.Println("Nonce: ", bc.blocks[i].nonce);
+		fmt.Println("------");
+		i++;
+	}
 }
